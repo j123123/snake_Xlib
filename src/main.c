@@ -202,11 +202,13 @@ int main(void)
     unsigned int x[1000], y[1000];
     Display *d;
     Window w;
+    Atom delWindow;
     unsigned int s;
     unsigned int mv; //переброс пикселей из зада вперед
     unsigned int count;
     char plusminus=0;
     XEvent e;
+    int exit_game = 0;
     
                         /* open connection with the server */
     d = XOpenDisplay(NULL);
@@ -221,6 +223,8 @@ int main(void)
     w = XCreateSimpleWindow(d, RootWindow(d, s), 10, 10, LEFT_BORDER,
                            DOWN_BORDER, 1, BlackPixel(d, s),
                            WhitePixel(d, s));
+    delWindow = XInternAtom(d, "WM_DELETE_WINDOW", 0);
+    XSetWMProtocols(d, w, &delWindow, 1);
                         /* select kind of events we are interested in */
     XSelectInput(d, w, ExposureMask | KeyPressMask);
                         /* map (show) the window */
@@ -248,7 +252,7 @@ int main(void)
     y[1]=y0;
     draweatpoint (d, w, s, &xrand, &yrand);
                            /* event loop */  
-    while (1)
+    while (!exit_game)
     {
         XNextEvent(d, &e);
         if (e.type == Expose)
@@ -270,5 +274,11 @@ int main(void)
             read_KeyPress (&e, x, y, &mv, &plusminus, d, w, s, &LENGTH,\
             &xrand, &yrand );
         }
+        if (e.type == ClientMessage)
+        {
+            exit_game = 1;
+        }
     }
+
+    return 0;
 }
